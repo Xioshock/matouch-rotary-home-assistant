@@ -1,12 +1,8 @@
-// Makerfabs MTE21R0 board-template main source file
-
 #include <Wire.h>
 #include <Arduino_GFX_Library.h>
 #include "touch.h"
 #include <lvgl.h>
 #include <ui.h>
-
-/*Don't forget to set Sketchbook location in File/Preferences to the path of your UI project (the parent foder of this INO file)*/
 
 enum BoardConstants
 {
@@ -35,7 +31,6 @@ Arduino_ESP32RGBPanel *bus = new Arduino_ESP32RGBPanel(
     4 /* B0 */, 41 /* B1 */, 5 /* B2 */, 40 /* B3 */, 6 /* B4 */
 );
 
-// Uncomment for 2.1" round display
 Arduino_ST7701_RGBPanel *gfx = new Arduino_ST7701_RGBPanel(
     bus, GFX_NOT_DEFINED /* RST */, 0 /* rotation */,
     false /* IPS */, 480 /* width */, 480 /* height */,
@@ -44,13 +39,11 @@ Arduino_ST7701_RGBPanel *gfx = new Arduino_ST7701_RGBPanel(
     10 /* hsync_front_porch */, 8 /* hsync_pulse_width */, 50 /* hsync_back_porch */,
     10 /* vsync_front_porch */, 8 /* vsync_pulse_width */, 20 /* vsync_back_porch */);
 
-// Encoder state-variables:
 int counter = 0;
-int State;
-int old_State;
-int move_flag = 0;
+int encoder_state;
+int encoder_old_state;
 
-void Task_TFT(void *pvParameters)
+void tft_task(void *pvParameters)
 {
     while (1)
     {
@@ -59,21 +52,51 @@ void Task_TFT(void *pvParameters)
     }
 }
 
-void encoder_irq()
+void encoder_rotated()
 {
-    State = digitalRead(ENCODER_CLK);
-    if (State != old_State)
+    encoder_state = digitalRead(ENCODER_CLK);
+
+    if (encoder_state != encoder_old_state)
     {
-        if (digitalRead(ENCODER_DT) == State)
+        if (digitalRead(ENCODER_DT) == encoder_state)
         {
             counter++;
+
+            if (counter > 100)
+                counter = 100;
         }
         else
         {
             counter--;
+
+            if (counter < 0)
+                counter = 0;
         }
+
+        lv_arc_set_value(ui_LightArc, counter);
+        lv_label_set_text(ui_debug2, String(counter).c_str());
     }
-    old_State = State; // the first position was changed
+
+    encoder_old_state = encoder_state;
+}
+
+void encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
+{
+    // if (counter > 0)
+    // {
+    //     data->state = LV_INDEV_STATE_PRESSED;
+    //     data->key = LV_KEY_RIGHT;
+    // }
+
+    // else if (counter < 0)
+    // {
+    //     data->state = LV_INDEV_STATE_PRESSED;
+    //     data->key = LV_KEY_LEFT;
+    // }
+    // else
+    // {
+    //     data->state = LV_INDEV_STATE_RELEASED;
+    // }
 }
 
 void pin_init()
@@ -83,15 +106,15 @@ void pin_init()
 
     pinMode(ENCODER_CLK, INPUT_PULLUP);
     pinMode(ENCODER_DT, INPUT_PULLUP);
-    old_State = digitalRead(ENCODER_CLK);
+    encoder_old_state = digitalRead(ENCODER_CLK);
 
-    attachInterrupt(ENCODER_CLK, encoder_irq, CHANGE);
+    attachInterrupt(ENCODER_CLK, encoder_rotated, CHANGE);
 
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
 }
 
 /* Display flushing */
-void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
+void display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     uint32_t w = (area->x2 - area->x1 + 1);
     uint32_t h = (area->y2 - area->y1 + 1);
@@ -106,7 +129,7 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
 }
 
 /*Read the touchpad*/
-void my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
+void touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
 {
     int touchX = 0, touchY = 0;
 
@@ -120,29 +143,6 @@ void my_touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
     else
     {
         data->state = LV_INDEV_STATE_REL;
-    }
-}
-
-void my_encoder_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
-{
-    if (counter > 0)
-    {
-        data->state = LV_INDEV_STATE_PRESSED;
-        data->key = LV_KEY_RIGHT;
-        counter--;
-        move_flag = 1;
-    }
-
-    else if (counter < 0)
-    {
-        data->state = LV_INDEV_STATE_PRESSED;
-        data->key = LV_KEY_LEFT;
-        counter++;
-        move_flag = 1;
-    }
-    else
-    {
-        data->state = LV_INDEV_STATE_RELEASED;
     }
 }
 
@@ -165,7 +165,7 @@ void setup()
     /*Change the following line to your display resolution*/
     disp_drv.hor_res = screenWidth;
     disp_drv.ver_res = screenHeight;
-    disp_drv.flush_cb = my_disp_flush;
+    disp_drv.flush_cb = display_flush;
     disp_drv.draw_buf = &draw_buf;
     lv_disp_drv_register(&disp_drv);
 
@@ -173,23 +173,37 @@ void setup()
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
     indev_drv.type = LV_INDEV_TYPE_POINTER;
-    indev_drv.read_cb = my_touchpad_read;
+    indev_drv.read_cb = touchpad_read;
     lv_indev_drv_register(&indev_drv);
 
     // encoder
     static lv_indev_drv_t indev_drv2;
     lv_indev_drv_init(&indev_drv2);
     indev_drv2.type = LV_INDEV_TYPE_ENCODER;
-    indev_drv2.read_cb = my_encoder_read;
+    indev_drv2.read_cb = encoder_read;
     lv_indev_t *encoder_indev = lv_indev_drv_register(&indev_drv2);
 
     ui_init();
 
     Serial.println("Setup done");
 
-    xTaskCreatePinnedToCore(Task_TFT, "Task_TFT", 20480, NULL, 3, NULL, 0);
+    xTaskCreatePinnedToCore(tft_task, "Task_TFT", 20480, NULL, 3, NULL, 0);
 }
 
 void loop()
 {
+    delay(100);
+
+    // Encoder button pressed
+    if (digitalRead(BUTTON_PIN) == 0)
+    {
+        lv_label_set_text(ui_debug1, "button pressed");
+    }
+    else
+    {
+        // lv_label_set_text(ui_debug1, "button released");
+    }
+
+    lv_arc_set_value(ui_LightArc, counter);
+    lv_label_set_text(ui_debug2, String(counter).c_str());
 }

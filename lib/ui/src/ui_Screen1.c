@@ -10,63 +10,41 @@ void ui_Screen1_screen_init(void)
     ui_Screen1 = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_Screen1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
-    ui_Arc1 = lv_arc_create(ui_Screen1);
-    lv_obj_set_width(ui_Arc1, 480);
-    lv_obj_set_height(ui_Arc1, 480);
-    lv_obj_set_align(ui_Arc1, LV_ALIGN_CENTER);
-    lv_arc_set_value(ui_Arc1, 50);
+    ui_Container1 = lv_obj_create(ui_Screen1);
+    lv_obj_remove_style_all(ui_Container1);
+    lv_obj_set_width(ui_Container1, 480);
+    lv_obj_set_height(ui_Container1, 480);
+    lv_obj_set_align(ui_Container1, LV_ALIGN_CENTER);
+    lv_obj_set_flex_flow(ui_Container1, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(ui_Container1, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Container1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_LightArc = lv_arc_create(ui_Container1);
+    lv_obj_set_width(ui_LightArc, 465);
+    lv_obj_set_height(ui_LightArc, 465);
+    lv_obj_set_x(ui_LightArc, 16);
+    lv_obj_set_y(ui_LightArc, -26);
+    lv_obj_set_align(ui_LightArc, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_LightArc, LV_OBJ_FLAG_CLICKABLE);      /// Flags
+    lv_arc_set_value(ui_LightArc, 50);
 
 
-    ui_Switch1 = lv_switch_create(ui_Screen1);
-    lv_obj_set_width(ui_Switch1, 50);
-    lv_obj_set_height(ui_Switch1, 25);
-    lv_obj_set_x(ui_Switch1, -16);
-    lv_obj_set_y(ui_Switch1, 122);
-    lv_obj_set_align(ui_Switch1, LV_ALIGN_CENTER);
+    ui_debug1 = lv_label_create(ui_Screen1);
+    lv_obj_set_width(ui_debug1, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_debug1, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_debug1, -7);
+    lv_obj_set_y(ui_debug1, -72);
+    lv_obj_set_align(ui_debug1, LV_ALIGN_CENTER);
+    lv_obj_set_style_text_font(ui_debug1, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    ui_debug2 = lv_label_create(ui_Screen1);
+    lv_obj_set_width(ui_debug2, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_debug2, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_debug2, -7);
+    lv_obj_set_y(ui_debug2, -3);
+    lv_obj_set_align(ui_debug2, LV_ALIGN_CENTER);
+    lv_obj_set_style_text_font(ui_debug2, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_Dropdown1 = lv_dropdown_create(ui_Screen1);
-    lv_obj_set_width(ui_Dropdown1, 150);
-    lv_obj_set_height(ui_Dropdown1, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Dropdown1, -6);
-    lv_obj_set_y(ui_Dropdown1, -109);
-    lv_obj_set_align(ui_Dropdown1, LV_ALIGN_CENTER);
-    lv_obj_add_flag(ui_Dropdown1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
-
-
-
-    ui_Spinbox1 = lv_spinbox_create(ui_Screen1);
-    lv_obj_set_width(ui_Spinbox1, 70);
-    lv_obj_set_height(ui_Spinbox1, 42);
-    lv_obj_set_x(ui_Spinbox1, -13);
-    lv_obj_set_y(ui_Spinbox1, -2);
-    lv_obj_set_align(ui_Spinbox1, LV_ALIGN_CENTER);
-    lv_spinbox_set_digit_format(ui_Spinbox1, 4, 2);
-    lv_spinbox_set_range(ui_Spinbox1, 0, 9999);
-    lv_spinbox_set_cursor_pos(ui_Spinbox1, 1 - 1);
-
-    ui_Colorwheel1 = lv_colorwheel_create(ui_Screen1, true);
-    lv_obj_set_width(ui_Colorwheel1, 150);
-    lv_obj_set_height(ui_Colorwheel1, 150);
-    lv_obj_set_x(ui_Colorwheel1, 119);
-    lv_obj_set_y(ui_Colorwheel1, 8);
-    lv_obj_set_align(ui_Colorwheel1, LV_ALIGN_CENTER);
-
-    ui_Checkbox1 = lv_checkbox_create(ui_Screen1);
-    lv_obj_set_width(ui_Checkbox1, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_Checkbox1, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Checkbox1, -101);
-    lv_obj_set_y(ui_Checkbox1, 75);
-    lv_obj_set_align(ui_Checkbox1, LV_ALIGN_CENTER);
-    lv_obj_add_flag(ui_Checkbox1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
-
-    ui_Spinner1 = lv_spinner_create(ui_Screen1, 1000, 90);
-    lv_obj_set_width(ui_Spinner1, 80);
-    lv_obj_set_height(ui_Spinner1, 80);
-    lv_obj_set_x(ui_Spinner1, 86);
-    lv_obj_set_y(ui_Spinner1, 140);
-    lv_obj_set_align(ui_Spinner1, LV_ALIGN_CENTER);
-    lv_obj_clear_flag(ui_Spinner1, LV_OBJ_FLAG_CLICKABLE);      /// Flags
-
+    lv_obj_add_event_cb(ui_LightArc, ui_event_LightArc, LV_EVENT_ALL, NULL);
 
 }

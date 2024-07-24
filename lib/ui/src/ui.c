@@ -12,13 +12,11 @@
 // SCREEN: ui_Screen1
 void ui_Screen1_screen_init(void);
 lv_obj_t * ui_Screen1;
-lv_obj_t * ui_Arc1;
-lv_obj_t * ui_Switch1;
-lv_obj_t * ui_Dropdown1;
-lv_obj_t * ui_Spinbox1;
-lv_obj_t * ui_Colorwheel1;
-lv_obj_t * ui_Checkbox1;
-lv_obj_t * ui_Spinner1;
+lv_obj_t * ui_Container1;
+void ui_event_LightArc(lv_event_t * e);
+lv_obj_t * ui_LightArc;
+lv_obj_t * ui_debug1;
+lv_obj_t * ui_debug2;
 lv_obj_t * ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
@@ -32,6 +30,14 @@ lv_obj_t * ui____initial_actions0;
 ///////////////////// ANIMATIONS ////////////////////
 
 ///////////////////// FUNCTIONS ////////////////////
+void ui_event_LightArc(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+    lv_obj_t * target = lv_event_get_target(e);
+    if(event_code == LV_EVENT_VALUE_CHANGED) {
+        _ui_arc_increment(ui_LightArc, 1);
+    }
+}
 
 ///////////////////// SCREENS ////////////////////
 

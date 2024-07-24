@@ -28,13 +28,11 @@ extern "C" {
 // SCREEN: ui_Screen1
 void ui_Screen1_screen_init(void);
 extern lv_obj_t * ui_Screen1;
-extern lv_obj_t * ui_Arc1;
-extern lv_obj_t * ui_Switch1;
-extern lv_obj_t * ui_Dropdown1;
-extern lv_obj_t * ui_Spinbox1;
-extern lv_obj_t * ui_Colorwheel1;
-extern lv_obj_t * ui_Checkbox1;
-extern lv_obj_t * ui_Spinner1;
+extern lv_obj_t * ui_Container1;
+void ui_event_LightArc(lv_event_t * e);
+extern lv_obj_t * ui_LightArc;
+extern lv_obj_t * ui_debug1;
+extern lv_obj_t * ui_debug2;
 extern lv_obj_t * ui____initial_actions0;
 
 

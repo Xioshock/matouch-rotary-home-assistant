@@ -1,0 +1,3 @@
+[submodule "lib/arduino-lib"]
+	path = lib/arduino-lib
+	url = https://github.com/Xioshock/arduino-lib.git

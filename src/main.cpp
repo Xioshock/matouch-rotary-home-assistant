@@ -39,7 +39,8 @@ Arduino_ST7701_RGBPanel *gfx = new Arduino_ST7701_RGBPanel(
     10 /* hsync_front_porch */, 8 /* hsync_pulse_width */, 50 /* hsync_back_porch */,
     10 /* vsync_front_porch */, 8 /* vsync_pulse_width */, 20 /* vsync_back_porch */);
 
-int counter = 0;
+int encoder_value = 0;
+int encoder_step = 3;
 int encoder_state;
 int encoder_old_state;
 
@@ -60,21 +61,21 @@ void encoder_rotated()
     {
         if (digitalRead(ENCODER_DT) == encoder_state)
         {
-            counter++;
+            encoder_value += encoder_step;
 
-            if (counter > 100)
-                counter = 100;
+            if (encoder_value > 100)
+                encoder_value = 100;
         }
         else
         {
-            counter--;
+            encoder_value -= encoder_step;
 
-            if (counter < 0)
-                counter = 0;
+            if (encoder_value < 0)
+                encoder_value = 0;
         }
 
-        lv_arc_set_value(ui_LightArc, counter);
-        lv_label_set_text(ui_debug2, String(counter).c_str());
+        lv_arc_set_value(ui_LightArc, encoder_value);
+        lv_label_set_text(ui_debug2, String(encoder_value).c_str());
     }
 
     encoder_old_state = encoder_state;
@@ -146,9 +147,15 @@ void touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
     }
 }
 
+void update_ui(lv_timer_t *timer)
+{
+    lv_arc_set_value(ui_LightArc, encoder_value);
+    lv_label_set_text(ui_debug2, String(encoder_value).c_str());
+}
+
 void setup()
 {
-    Serial.begin(115200); /* prepare for possible serial debug */
+    Serial.begin(115200);
 
     String LVGL_Arduino = "Hello Arduino! ";
     LVGL_Arduino += String('V') + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
@@ -162,7 +169,6 @@ void setup()
     /*Initialize the display*/
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
-    /*Change the following line to your display resolution*/
     disp_drv.hor_res = screenWidth;
     disp_drv.ver_res = screenHeight;
     disp_drv.flush_cb = display_flush;
@@ -185,25 +191,35 @@ void setup()
 
     ui_init();
 
-    Serial.println("Setup done");
-
     xTaskCreatePinnedToCore(tft_task, "Task_TFT", 20480, NULL, 3, NULL, 0);
+
+    lv_timer_create(update_ui, 500, NULL);
+
+    while (1)
+    {
+        // Your code to handle LVGL tasks
+        lv_task_handler();
+        usleep(5000); // Sleep for 5 milliseconds
+    }
 }
 
 void loop()
 {
-    delay(100);
+    lv_timer_handler();
+    delay(5);
 
-    // Encoder button pressed
-    if (digitalRead(BUTTON_PIN) == 0)
-    {
-        lv_label_set_text(ui_debug1, "button pressed");
-    }
-    else
-    {
-        // lv_label_set_text(ui_debug1, "button released");
-    }
+    // delay(100);
 
-    lv_arc_set_value(ui_LightArc, counter);
-    lv_label_set_text(ui_debug2, String(counter).c_str());
+    // // Encoder button pressed
+    // if (digitalRead(BUTTON_PIN) == 0)
+    // {
+    //     lv_label_set_text(ui_debug1, "button pressed");
+    // }
+    // else
+    // {
+    //     // lv_label_set_text(ui_debug1, "button released");
+    // }
+
+    // lv_arc_set_value(ui_LightArc, counter);
+    // lv_label_set_text(ui_debug2, String(counter).c_str());
 }
